@@ -102,6 +102,10 @@ func resourceSumologicMonitorsLibraryMonitor() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringInSlice([]string{"LessThan", "LessThanOrEqual", "GreaterThan", "GreaterThanOrEqual"}, false),
 						},
+						"field": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"time_range": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -121,6 +125,25 @@ func resourceSumologicMonitorsLibraryMonitor() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringInSlice([]string{"StaticCondition", "LogsStaticCondition", "MetricsStaticCondition", "LogsOutlierCondition", "MetricsOutlierCondition", "LogsMissingDataCondition", "MetricsMissingDataCondition"}, false),
+						},
+						"window": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"baseline_window": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"consecutive": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"direction": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"Both", "Up", "Down"}, false),
 						},
 					},
 				},
@@ -365,10 +388,15 @@ func resourceSumologicMonitorsLibraryMonitorRead(d *schema.ResourceData, meta in
 			"trigger_type":     t.TriggerType,
 			"threshold":        t.Threshold,
 			"threshold_type":   t.ThresholdType,
+			"field":            t.Field,
 			"time_range":       strings.TrimPrefix(t.TimeRange, "-"),
 			"occurrence_type":  t.OccurrenceType,
 			"trigger_source":   t.TriggerSource,
 			"detection_method": t.DetectionMethod,
+			"window":           t.Window,
+			"baseline_window":  strings.TrimPrefix(t.BaselineWindow, "-"),
+			"consecutive":      t.Consecutive,
+			"direction":        t.Direction,
 		}
 	}
 	if err := d.Set("triggers", triggers); err != nil {
@@ -478,10 +506,15 @@ func getTriggers(d *schema.ResourceData) []TriggerCondition {
 			TriggerType:     triggerDict["trigger_type"].(string),
 			Threshold:       triggerDict["threshold"].(float64),
 			ThresholdType:   triggerDict["threshold_type"].(string),
+			Field:           triggerDict["field"].(string),
 			TimeRange:       triggerDict["time_range"].(string),
 			OccurrenceType:  triggerDict["occurrence_type"].(string),
 			TriggerSource:   triggerDict["trigger_source"].(string),
 			DetectionMethod: triggerDict["detection_method"].(string),
+			Window:          triggerDict["window"].(int),
+			BaselineWindow:  triggerDict["baseline_window"].(string),
+			Consecutive:     triggerDict["consecutive"].(int),
+			Direction:       triggerDict["direction"].(string),
 		}
 	}
 	return triggers
